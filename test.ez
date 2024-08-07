@@ -1,0 +1,31 @@
+say "Hello! This is our new programming language!"
+// This is a comment
+create a list called FRUITS
+create a variable called NAME
+add "Apple","Pear","Banana" to FRUITS
+insert "Strawberry" into FRUITS in position 2
+remove item 3 of FRUITS
+set NAME to "John Smith"
+for each ITEM in FRUITS:
+	say ITEM
+say "Run a function multiple times!" (3x)
+do 4 times:
+	say "Hi"
+  	say "Multiline repeats"
+wait 3s
+if ("Pear" is in FRUITS):
+	say "It is"
+else if ("Apple" is in FRUITS):
+	say "it is"
+else:
+	say "it isnt"
+using the "Files" library:
+	create a file called "test.txt"
+ 	say (read "test.txt")
+  	add "Hello" to "test.txt"
+   	say (read line 1 of "test.txt")
+	overwrite line 1 of "test.txt" to ((read line 1 of "test.txt") + " World.") 
+	overwrite line 1 of "test.txt" to "Goodbye" 
+	delete file "test.txt"
+forever:
+	say "Hi"
