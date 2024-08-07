@@ -12,7 +12,9 @@ def count_indents(s:str) -> int:
 # Returns a copy of the line, without the "(Nx)" at the end for repeats.
 def fix_repeat(s:str) -> str:
 	if s[-2:] == "x)":
-		return s[:-5]
+		r = s[::-1]
+		e = r.find("(")
+		return s[:-(e + 1)]
 	else:
 		return s
 
@@ -32,5 +34,6 @@ for line in code:
 		if split_cmd[1][1] == "\"":
 			proposed_line = (f"print({norepeat_cmd.removeprefix('say ').replace('\"','\\\"')})")
 
+	
 
 	
