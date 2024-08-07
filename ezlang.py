@@ -33,7 +33,6 @@ for line in code:
 	if split_cmd[0] == "say":
 		if split_cmd[1][1] == "\"":
 			proposed_line = (f"print({norepeat_cmd.removeprefix('say ').replace('\"','\\\"')})")
-
 	
 
-	
+	output.write(f"{' ' * indents}{proposed_line}")
