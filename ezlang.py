@@ -1,6 +1,6 @@
 import os
-line = "say (say (say \"Hello\"))"
-
+# run `pip install alive-progress` in the terminal if having issues.
+from alive_progress import *
 
 def compile(f:str):
     # Keep track of data types
@@ -25,7 +25,8 @@ def compile(f:str):
     
     def replace_quotation(s:str) -> str:
         if len(s) > 1:
-            return s[0] + s[1:-1].replace("\"", "\\\"") + s[-1]
+            if s.count("\"") > 2:
+                return s[0] + s[1:-1].replace("\"", "\\\"") + s[-1]
         return s
     
     def count_indents(string:str) -> int:
@@ -40,6 +41,7 @@ def compile(f:str):
         proposed_line = proposed_line.lstrip()
         # Backslashes prohibited in fstrings, so here's a workaround:
         b_quot = "\""
+        b_back = "\\"
         repeats = 0
         
         # Little script to remove (Nx) repeat function. Must run before Nested function handler.
@@ -50,9 +52,9 @@ def compile(f:str):
         
         if len(data_tracker) != 0:
             for key in data_tracker:
-                if (key in proposed_line) and (data_tracker[key] != "file"):
+                if (key in proposed_line) and (data_tracker[key] != "file") and (proposed_line[:proposed_line.find(key)].count("\"") % 2 == 0):
                     proposed_line = proposed_line.replace(key,f"ez_usrdata_{key.lower()}")
-                
+        
         split_version = proposed_line.split()
         
         if return_bracket_indices(proposed_line) != None:
@@ -63,6 +65,8 @@ def compile(f:str):
                 
         if proposed_line.startswith("say"):
             proposed_line = f"print({replace_quotation(proposed_line[4:].strip())})"
+        elif proposed_line.startswith("ask"):
+            proposed_line = f"input({replace_quotation(proposed_line[4:].strip()).removeprefix(b_back)})"
         elif proposed_line.startswith("//"):
             proposed_line = f"#{proposed_line.removeprefix('//')}"
         elif proposed_line.startswith("create"):
@@ -74,7 +78,7 @@ def compile(f:str):
                 proposed_line = f"ez_usrdata_{split_version[-1].lower()} = []"
                 data_tracker[split_version[-1]] = "list"
             else:
-                proposed_line = f"open({split_version[-1].lower()}, w).close()"
+                proposed_line = f"open({split_version[-1].lower()}, \"w\").close()"
                 data_tracker[split_version[-1]] = "file"
         elif proposed_line.startswith("add"):
             # Add to end of string? or add list items? Or even file. Because of the way we handle variables we need a `try`.
@@ -84,14 +88,30 @@ def compile(f:str):
                 else:
                     proposed_line = f"{split_version[-1]} = {split_version[-1].lower()} + {proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]}')"
             except KeyError:
-                proposed_line = f"open({split_version[-1]},a).write({replace_quotation(proposed_line.removeprefix('add ').removesuffix(f' to {split_version[-1]}'))}).close()"
+                proposed_line = f"open({split_version[-1]}, \"a\").write({replace_quotation(proposed_line.removeprefix('add ').removesuffix(f' to {split_version[-1]}'))}).close()"
         elif proposed_line.startswith("insert"):
             proposed_line = f"{split_version[-4].lower()}.insert({proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]},{int(split_version[-1]) - 1})"
         elif proposed_line.startswith("remove"):
             proposed_line = f"{split_version[-1].lower()}.pop({int(split_version[2]) - 1})"
+        elif proposed_line.startswith("set"):
+            if data_tracker[return_original_var(split_version[1])] == "list":
+                proposed_line = f"{split_version[1]} = [{proposed_line.removeprefix(f'set {split_version[1]} to ')}]"
+            else:
+                proposed_line = f"{split_version[1]} = {proposed_line.removeprefix(f'set {split_version[1]} to ')}"
+        # In this case, we need "for ", with a space, as it may get confused with "forever".
+        elif proposed_line.startswith("for "):
+            # For loop detected, which we need to handle.
+            data_tracker[split_version[2]] = "iterable"
+            proposed_line = f"for ez_usrdata_{split_version[2].lower()} in {split_version[-1].removesuffix(':')}:"
+        elif proposed_line.startswith("do"):
+            proposed_line = f"for ez_core_repeatfunc in range({split_version[1]}):"
         
-        # Add indents back in:
-        proposed_line = f"{' ' * ind}{proposed_line}"
+        # Add indents and repeats back in:
+        if repeats != 0:
+            proposed_line = (' ' * ind) + (f"for ez_core_repeatfunc in range({repeats}):\n{' ' * ind}{' ' * indents}") + proposed_line
+        else:
+            proposed_line = (' ' * ind) + proposed_line
+            
         
         return proposed_line
     
@@ -102,8 +122,10 @@ def compile(f:str):
     c.close()
     os.chdir(f"EZ_Compiled_{f.split('.')[0].capitalize()}")
     output = open(f"{f.split('.')[0].lower()}.py", "a")
-    for line in code:
-        output.write(convert_line(line,indent_len) + "\n")
+    with alive_bar(len(code), unit=" lines") as bar:
+        for line in code:
+            output.write(convert_line(line,indent_len) + "\n")
+            bar()
 
 def count_indents(string:str) -> int:
     return len(string) - len(string.lstrip(' '))
