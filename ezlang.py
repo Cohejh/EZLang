@@ -23,11 +23,21 @@ def compile(f:str):
         else: 
             return None
     
+    def replace_quotation(s:str) -> str:
+        if len(s) > 1:
+            return s[0] + s[1:-1].replace("\"", "\\\"") + s[-1]
+        return s
+    
     def count_indents(string:str) -> int:
         return len(string) - len(string.lstrip(' '))
     
+    def return_original_var(s:str) -> str:
+        return s.removeprefix("ez_usrdata_").upper()
+    
     def convert_line(s:str,indents:int=None) -> str:
-        proposed_line = s.strip()
+        proposed_line = s.rstrip()
+        ind = count_indents(proposed_line)
+        proposed_line = proposed_line.lstrip()
         # Backslashes prohibited in fstrings, so here's a workaround:
         b_quot = "\""
         repeats = 0
@@ -37,17 +47,22 @@ def compile(f:str):
             end_i = proposed_line.rfind("(")
             repeats = int(proposed_line[end_i:].removeprefix("(").removesuffix("x)"))
             proposed_line = proposed_line[:end_i]
-            proposed_line = proposed_line.strip()
-            
+        
+        if len(data_tracker) != 0:
+            for key in data_tracker:
+                if (key in proposed_line) and (data_tracker[key] != "file"):
+                    proposed_line = proposed_line.replace(key,f"ez_usrdata_{key.lower()}")
+                
         split_version = proposed_line.split()
         
-        if return_bracket_indices(s) != None:
-            for bracket in return_bracket_indices(s):
-                inner_expression = convert_line(proposed_line[bracket[0] + 1:bracket[1]])
-                proposed_line = f"{proposed_line[:bracket[0] + 1]}{inner_expression}{proposed_line[bracket[1]:]}"
+        if return_bracket_indices(proposed_line) != None:
+            for bracket in return_bracket_indices(proposed_line):
+                if (proposed_line[:bracket[0]].count("\"") % 2 == 0):
+                    inner_expression = convert_line(proposed_line[bracket[0] + 1:bracket[1]])
+                    proposed_line = f"{proposed_line[:bracket[0] + 1]}{inner_expression}{proposed_line[bracket[1]:]}"
                 
         if proposed_line.startswith("say"):
-            proposed_line = f"print({proposed_line[4:].strip()})"
+            proposed_line = f"print({replace_quotation(proposed_line[4:].strip())})"
         elif proposed_line.startswith("//"):
             proposed_line = f"#{proposed_line.removeprefix('//')}"
         elif proposed_line.startswith("create"):
@@ -59,27 +74,33 @@ def compile(f:str):
                 proposed_line = f"ez_usrdata_{split_version[-1].lower()} = []"
                 data_tracker[split_version[-1]] = "list"
             else:
-                proposed_line = f"open({split_version[-1].lower()}, w)"
+                proposed_line = f"open({split_version[-1].lower()}, w).close()"
                 data_tracker[split_version[-1]] = "file"
         elif proposed_line.startswith("add"):
-            # Add to end of string? or add list items?
-            if data_tracker[split_version[-1]] == "list":
-                proposed_line = f"ez_usrdata_{split_version[-1].lower()}.extend([{proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]}])"
-            else:
-                proposed_line = f"ez_usrdata_{split_version[-1].lower()} = ez_usrdata_{split_version[-1].lower()} + {proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]}')"
+            # Add to end of string? or add list items? Or even file. Because of the way we handle variables we need a `try`.
+            try:
+                if data_tracker[return_original_var(split_version[-1])] == "list":
+                    proposed_line = f"{split_version[-1]}.extend([{proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]}])"
+                else:
+                    proposed_line = f"{split_version[-1]} = {split_version[-1].lower()} + {proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]}')"
+            except KeyError:
+                proposed_line = f"open({split_version[-1]},a).write({replace_quotation(proposed_line.removeprefix('add ').removesuffix(f' to {split_version[-1]}'))}).close()"
         elif proposed_line.startswith("insert"):
-            if data_tracker[split_version[-4]] == "list":
-                proposed_line = f"ez_usrdata_{split_version[-4].lower()}.insert({proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]},{int(split_version[-1]) - 1})"
-            else:
-                proposed_line = f"ez_usrdata_{split_version[-4].lower()}.insert()"
+            proposed_line = f"{split_version[-4].lower()}.insert({proposed_line[proposed_line.find(b_quot):proposed_line.rfind(b_quot) + 1]},{int(split_version[-1]) - 1})"
+        elif proposed_line.startswith("remove"):
+            proposed_line = f"{split_version[-1].lower()}.pop({int(split_version[2]) - 1})"
+        
+        # Add indents back in:
+        proposed_line = f"{' ' * ind}{proposed_line}"
+        
         return proposed_line
     
-    os.mkdir(f.split(".")[0].capitalize())
+    os.mkdir(f"EZ_Compiled_{f.split('.')[0].capitalize()}")
     c = open(f,"r")
     code = c.readlines()
     indent_len = count_indents([item for item in code if count_indents(item) != 0][0])
     c.close()
-    os.chdir(f.split(".")[0].capitalize())
+    os.chdir(f"EZ_Compiled_{f.split('.')[0].capitalize()}")
     output = open(f"{f.split('.')[0].lower()}.py", "a")
     for line in code:
         output.write(convert_line(line,indent_len) + "\n")
