@@ -1,0 +1,8 @@
+{
+    "version": "v1.0.0",
+    "github": "https://github.com/Cohejh/EZLang",
+    "zip": true,
+    "check-update": true,
+    "supports-ai": true,
+    "ai-model": "nano"
+}
