@@ -5,6 +5,7 @@ from alive_progress import *
 def compile(f:str):
     # Keep track of data types
     data_tracker = {}
+    imported_libs = []
     
     # Finally fixed and implemented nested function. Outputs an ugly mess of brackets, but it works...
     def return_bracket_indices(text:str) -> list[list[int]]:
@@ -105,6 +106,15 @@ def compile(f:str):
             proposed_line = f"for ez_usrdata_{split_version[2].lower()} in {split_version[-1].removesuffix(':')}:"
         elif proposed_line.startswith("do"):
             proposed_line = f"for ez_core_repeatfunc in range({split_version[1]}):"
+        elif proposed_line.startswith("wait"):
+            if "time" not in imported_libs:
+                proposed_line = f"import time\n{' ' * ind}time.sleep({split_version[1].removesuffix('s')})"
+            else:
+                proposed_line = f"time.sleep({split_version[1].removesuffix('s')})"
+        elif proposed_line.startswith("forever:")
+            proposed_line = "while (True):"
+        elif proposed_line.startswith("if"):
+            # Probably the hardest thing to implement
         
         # Add indents and repeats back in:
         if repeats != 0:
