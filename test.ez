@@ -25,8 +25,8 @@ create a file called "test.txt"
 say (read "test.txt")
 add "Hello" to "test.txt"
 say (read line 1 of "test.txt")
-overwrite line 1 of "test.txt" to (f"{read line 1 of "test.txt"} World.") 
 overwrite line 1 of "test.txt" to "Goodbye" 
+overwrite line 1 of "test.txt" to (f"{read line 1 of "test.txt"} World.") 
 delete file "test.txt"
 forever:
     say "Hi"
