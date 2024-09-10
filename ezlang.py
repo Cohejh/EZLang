@@ -5,14 +5,14 @@ import shutil
 import argparse
 import json
 import psutil
-# run `pip install torch` in the terminal if having issues
-import torch
+# run `pip install pick` in the terminal if having issues
 from pick import pick
 import sys
 import datetime
 import time
+import requests
 
-credits = "COHEJH, AverageNoB, Banjomoomintog"
+credits = "COHEJH"
 
 mit_l = f'''Copyright (c) {datetime.datetime.now().year} {credits}
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -23,76 +23,126 @@ parser = argparse.ArgumentParser(description='An Open-Source Compiler for the EZ
 parser.add_argument('--compile', metavar='FILE', help='The file to be compiled.')
 args = parser.parse_args()
 
+update = False
+changelog = ""
+
+settings = {}
+version = "1.0.0"
+github = "https://github.com/Cohejh/EZLang"
+config_path = os.path.expanduser("~/Documents/EZLang/ez_config.json")
+    
+def data_conversion(n:int) -> tuple[int, str]:
+    i = 0
+    k = n
+    units = ["b", "KB", "MB", "GB", "TB"]
+    while round(k / 1024) >= 1:
+        k = round(k / 1024)
+        i += 1
+    return (k, units[i])
+
+ram = data_conversion(psutil.virtual_memory().total)
+
+main_menu = ["Licence →", "Credits →", "Quit"]
+
+# Check for a ez_config.json file.
+if os.path.exists(config_path):
+    config = open(config_path, "r").read()
+    settings = json.loads(config)
+    main_menu.insert(0,"Config →")
+else:
+    # Create settings
+    settings["version"] = version
+    settings["github"] = github
+    settings["zip"] = True
+    settings["check-update"] = True
+    main_menu.insert(0,"Full Install →")
+
+if settings["check-update"] == True:
+    v = requests.get(f"https://raw.githubusercontent.com/{settings['github'].removeprefix('https://github.com/')}/backend/update.txt").content.strip().decode()
+    changelog = requests.get(f"https://raw.githubusercontent.com/{settings['github'].removeprefix('https://github.com/')}/backend/changelog.txt").content.decode()
+    v = v.removeprefix("v").split(".")
+    if v[0] > settings["version"].split(".")[0]:
+        update = True
+    elif v[1] > settings["version"].split(".")[1]:
+        update = True
+    elif v[2] > settings["version"].split(".")[2]:
+        update = True
+
 if len(sys.argv) == 1:
-
-    settings = {}
-    version = "v1.0.0"
-    github = "https://github.com/Cohejh/EZLang"
-    config_path = os.path.expanduser("~/Documents/EZLang/ez_config.json")
     
-    def data_conversion(n:int) -> tuple[int, str]:
-        i = 0
-        k = n
-        units = ["b", "KB", "MB", "GB", "TB"]
-        while round(k / 1024) >= 1:
-            k = round(k / 1024)
-            i += 1
-        return (k, units[i])
+    def main_menu_display():
 
-    ram = data_conversion(psutil.virtual_memory().total)
+        options,index = pick(main_menu,"EZLang Menu", "➾")
 
-    main_menu = ["Licence →", "Credits →", "Quit"]
-
-    # Check for a ez_config.json file.
-    if os.path.exists(config_path):
-        config = open(config_path, "r").read()
-        settings = json.loads(config)
-        main_menu.insert(0,"Config →")
-        if settings["supports-ai"] == True:
-            main_menu.insert(1,"AI Settings (Experimental) →")
-    else:
-        # Create settings
-        settings["version"] = version
-        settings["github"] = github
-        settings["zip"] = True
-        settings["check-update"] = True
-        if (ram[0] >= 8) and ((ram[1] == "GB") or (ram[1] == "TB")):
-            settings["supports-ai"] = True
-        else:
-            settings["supports-ai"] = False
-        if (ram[0] >= 32) and (torch.cuda.is_available() == True):
-            settings["ai-model"] = "xl"
-        elif (ram[0] >= 16) and (torch.cuda.is_available() == True):
-            settings["ai-model"] = "standard"
-        else:
-            settings["ai-model"] = "nano"
-        main_menu.insert(0,"Full Install →")
-
-    options,index = pick(main_menu,"EZLang Menu", "=>")
-    if options == "Licence":
-        print(mit_l)
-    elif options == "Quit":
-        sys.exit()
-    elif options == "Credits":
-        print("EZLang Credits:")
-        time.sleep(0.5)
-        print("Lead Developer - COHEJH")
-        time.sleep(0.5)
-        print("Official Finder Of Problems - AverageNoB")
-        time.sleep(0.5)
-        print("Guy Who Has Yet To Push A Commit To The Repo - Banjomoomintog")
-    elif options == "Full Install":
-        print("Installing EZLang...")
-        os.mkdir(config_path.removesuffix("ez_config.json"))
-        open(config_path, "w").write(json.dumps(settings))
-        print("Installed EZLang.")
-
-    # Need to add more options later.
+        if options == "Licence →":
+            print(mit_l)
+        elif options == "Quit":
+            sys.exit()
+        elif options == "Credits →":
+            print("EZLang Credits:")
+            time.sleep(0.5)
+            print("Lead Developer - COHEJH")
+            time.sleep(0.5)
+            print("Guy Who Has Yet To Push A Commit To The Repo - Banjomoomintog")
+            time.sleep(0.5)
+            print("Official Finder Of Problems - AverageNoB")
+        elif options == "Full Install →":
+            print("Installing EZLang...")
+            try:
+                os.mkdir(config_path.removesuffix("ez_config.json"))
+            except:
+                pass
+            open(config_path, "w").write(json.dumps(settings))
+            print("Installed EZLang.")
+        elif options == "Config →":
+            config_menu()
     
+    # Repo change breaks update briefly
+    u_c = 0
+      
+    def config_menu():
+        global u_c
+        options,index = pick(["Backend Settings →", "Output Settings →", "Software Update Settings →","Back ↺"],"Pick an option to edit", "➾")
+        if options == "Back ↺":
+            main_menu_display()
+        elif options == "Backend Settings →":
+            options,index = pick(["Official (Cohejh/EZLang)", "Custom Repo","Back ↺"],f"Choose your backend Repo (Currently: {settings['github'].removeprefix('https://github.com/')})", "➾")
+            u_c = 1
+            if options == "Official (Cohejh/EZLang)":
+                settings["github"] = github
+                open(config_path, "w").write(json.dumps(settings))
+            elif options == "Custom Repo":
+                gh_path = input("Enter the Repository in the format <GitHub Username>/<Repository Name>: ")
+                settings["github"] = f"https://github.com/{gh_path}"
+                open(config_path, "w").write(json.dumps(settings))
+            else:
+                u_c = 0
+                config_menu()
+        elif options == "Output Settings →":
+            options,index = pick(["Official (Cohejh/EZLang)", "Custom Repo","Back ↺"],f"Choose your backend Repo (Currently: {settings['github'].removeprefix('https://github.com/')})", "➾")
+            u_c = 1
+            if options == "Official (Cohejh/EZLang)":
+                settings["zip"] = True
+                open(config_path, "w").write(json.dumps(settings))
+            elif options == "Custom Repo":
+                gh_path = input("Enter the Repository in the format <GitHub Username>/<Repository Name>: ")
+                settings["zip"] = f"https://github.com/{gh_path}"
+                open(config_path, "w").write(json.dumps(settings))
+            else:
+                u_c = 0
+                config_menu()
+                
+            
+
+    main_menu_display()
         
-        
+    if (update == True) and (u_c == 0):
+        print("** Update Avaliable **")
+        print(changelog.removesuffix("\n"))
+        print(f"\nDownload a newer copy from {settings['github']}\n")
+
     # The Main Compile Function
-def compile(f:str,z:bool):
+def compile_file(f:str,z:bool):
     # Keep track of data types
     data_tracker = {}
     imported_libs = []
@@ -355,6 +405,11 @@ def compile(f:str,z:bool):
     if z == True:
         os.chdir("..")
         shutil.make_archive(f"EZ_Compiled_{f.split('.')[0].capitalize()}", "zip")
-        os.rmdir(f"EZ_Compiled_{f.split('.')[0].capitalize()}")
-        
-# Hi
+        shutil.rmtree(f"EZ_Compiled_{f.split('.')[0].capitalize()}")
+
+if args.compile != None:
+    if update == True:
+        print("** Update Avaliable **")
+        print(changelog.removesuffix("\n"))
+        print(f"\nDownload a newer copy from {settings['github']}\n")
+    compile_file(args.compile, settings["zip"])      
