@@ -38,7 +38,7 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION=$(jq -r '.version' build-config.json)
+        VERSION=$(jq -r '.version' OpenEZ/build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: bash
 
@@ -73,7 +73,12 @@ jobs:
         if [ ${{ matrix.os }} == 'windows-latest' ]; then
           pwsh -Command "Compress-Archive -Path dist/windows/* -DestinationPath dist/OpenEZ-Windows.zip"
         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
-          zip -r dist/OpenEZ-MacOS.zip dist/macos
+          if [ -d "dist/macos" ] && [ "$(ls -A dist/macos)" ]; then
+            zip -r dist/OpenEZ-MacOS.zip dist/macos
+          else
+            echo "No files to zip in dist/macos"
+            exit 1
+          fi
         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
           tar -czvf dist/OpenEZ-Linux.tar.gz -C dist/linux OpenEZ
         else
