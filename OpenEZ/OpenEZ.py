@@ -8,7 +8,6 @@ from alive_progress import *
 import shutil
 import argparse
 import json
-import psutil
 # run `pip install pick` in the terminal if having issues
 from pick import pick
 import sys
@@ -45,8 +44,6 @@ def data_conversion(n:int) -> tuple[int, str]:
         k = round(k / 1024)
         i += 1
     return (k, units[i])
-
-ram = data_conversion(psutil.virtual_memory().total)
 
 main_menu = ["Licence →", "Credits →", "Quit"]
 
