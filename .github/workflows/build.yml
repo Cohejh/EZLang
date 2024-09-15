@@ -20,17 +20,25 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.x'
+      id: python-setup
+
+    - name: Verify Python version
+      run: |
+        python --version
+      shell: bash
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r ./OpenEZ/requirements.txt
+      shell: bash
 
     - name: Extract version
       id: get_version
       run: |
         VERSION=$(jq -r '.version' build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
+      shell: bash
 
     - name: Debug matrix OS
       run: |
@@ -55,6 +63,7 @@ jobs:
           echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
+      shell: bash
 
     - name: Archive binaries
       run: |
@@ -68,6 +77,7 @@ jobs:
           echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
+      shell: bash
 
     - name: Create Release
       id: release
@@ -90,8 +100,12 @@ jobs:
       if: success() && github.event_name == 'push'
       run: |
         for file in dist/*; do
-          echo "Uploading $file"
-          gh release upload "v${{ env.VERSION }}" $file --clobber
+          if [ -f "$file" ]; then
+            echo "Uploading $file"
+            gh release upload "v${{ env.VERSION }}" $file --clobber
+          else
+            echo "$file is not a file. Skipping."
+          fi
         done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
