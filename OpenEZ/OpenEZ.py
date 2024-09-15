@@ -2,8 +2,6 @@
 # An open-source compiler implementation of the EZLang Programming Language
 # (C) 2024 COHEJH, AverageNoB and Banjomoomintoog
 
-
-# You may have to import some libraries
 import os
 # run `pip install alive-progress` in the terminal if having issues.
 from alive_progress import *
