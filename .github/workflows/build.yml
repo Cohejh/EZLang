@@ -38,7 +38,7 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION=$(jq -r '.version' OpenEZ/build-config.json)
+        VERSION=$(jq -r '.version' build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: bash
 
