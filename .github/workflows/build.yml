@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'OpenEZS/**'
+      - 'OpenEZ/**'
 
 jobs:
   build:
@@ -40,6 +40,13 @@ jobs:
       run: |
         VERSION=$(jq -r '.version' OpenEZ/build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Extract spec version
+      id: get_specversion
+      run: |
+        SPECVERSION=$(jq -r '.specversion' OpenEZ/build-config.json)
+        echo "SPECVERSION=$SPECVERSION" >> $GITHUB_ENV
       shell: bash
 
     - name: Debug matrix OS
@@ -86,7 +93,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: "v${{ env.VERSION }}"
-        name: "OpenEZ Build v${{ env.VERSION }} for EZLang v${{ env.VERSION }}"
+        name: "OpenEZ Build v${{ env.VERSION }} for EZLang v${{ env.SPECVERSION }}"
         files: |
           dist/*
       env:
