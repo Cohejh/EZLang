@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r ./OpenEZ/requirements.txt
+        pip install -r requirements.txt
 
     - name: Extract version
       id: get_version
@@ -35,9 +35,27 @@ jobs:
     - name: Build executable
       run: |
         if [ $RUNNER_OS == 'Windows' ]; then
-          pyinstaller --onefile --name OpenEZ.exe ./OpenEZ/OpenEZ.py  # Compile with the correct name for Windows
-        else
-          pyinstaller --onefile ./OpenEZ/OpenEZ.py  # Compile with default name for macOS/Linux
+          pyinstaller --onefile --name OpenEZ.exe ./OpenEZ/OpenEZ.py
+          mkdir -p dist/windows
+          mv dist/OpenEZ.exe dist/windows/OpenEZ.exe
+        elif [ $RUNNER_OS == 'macOS' ]; then
+          pyinstaller --onefile ./OpenEZ/OpenEZ.py
+          mkdir -p dist/macos
+          mv dist/OpenEZ dist/macos/OpenEZ
+        elif [ $RUNNER_OS == 'Linux' ]; then
+          pyinstaller --onefile ./OpenEZ/OpenEZ.py
+          mkdir -p dist/linux
+          mv dist/OpenEZ dist/linux/OpenEZ
+        fi
+
+    - name: Archive binaries
+      run: |
+        if [ $RUNNER_OS == 'Windows' ]; then
+          zip -r dist/OpenEZ-Windows.zip dist/windows
+        elif [ $RUNNER_OS == 'macOS' ]; then
+          zip -r dist/OpenEZ-MacOS.zip dist/macos
+        elif [ $RUNNER_OS == 'Linux' ]; then
+          tar -czvf dist/OpenEZ-Linux.tar.gz -C dist/linux OpenEZ
         fi
 
     - name: Create Release
