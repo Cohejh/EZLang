@@ -35,7 +35,6 @@ github = "https://github.com/Cohejh/EZLang"
 config_path = os.path.expanduser("~/Documents/EZLang/oez_config.json")
 
 # Useful little function
-
 def data_conversion(n:int) -> tuple[int, str]:
     i = 0
     k = n
