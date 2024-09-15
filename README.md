@@ -22,6 +22,8 @@ If you have made your own implementation, then feel free to contact us, so that 
 
 OpenEZ is our own open-source implementation of EZLang. It is written in Python, and compiles your EZ code into Python. As we decide the language specifications, it will always be the most up to date. It offers configurable compiling options, providing different compilation targets. It is MIT Licenced, so that you can modify it to your heart's content.
 
+You can find the releases of the compiler <a href="https://github.com/Cohejh/EZLang/releases">here</a>. They will be named `OpenEZ Build <COMPILER VERSION> for EZ <SUPPORTED EZLANG VERSION>`. For example, `OpenEZ Build v2.3.1 for EZ v1.7.0` supports EZ `v1.7.0`, but it is `v2.3.1` of the compiler.
+
 # Changelog
 Here you will find the changelog for each version of EZLang. All changes will also be implemented in OpenEZ.
 
