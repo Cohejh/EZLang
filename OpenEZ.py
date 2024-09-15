@@ -1,3 +1,7 @@
+# OpenEZ
+# An open-source compiler implementation of the EZLang Programming Language
+# (C) 2024 COHEJH, AverageNoB and Banjomoomintoog
+
 import os
 # run `pip install alive-progress` in the terminal if having issues.
 from alive_progress import *
@@ -12,10 +16,10 @@ import datetime
 import time
 import requests
 
-credits = "COHEJH"
+credits = "COHEJH and AverageNoB"
 
 mit_l = f'''Copyright (c) {datetime.datetime.now().year} {credits}
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 \nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 \nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.'''
 
@@ -29,7 +33,7 @@ changelog = ""
 settings = {}
 version = "1.0.0"
 github = "https://github.com/Cohejh/EZLang"
-config_path = os.path.expanduser("~/Documents/EZLang/ez_config.json")
+config_path = os.path.expanduser("~/Documents/EZLang/oez_config.json")
     
 def data_conversion(n:int) -> tuple[int, str]:
     i = 0
@@ -44,7 +48,7 @@ ram = data_conversion(psutil.virtual_memory().total)
 
 main_menu = ["Licence →", "Credits →", "Quit"]
 
-# Check for a ez_config.json file.
+# Check for a oez_config.json file.
 if os.path.exists(config_path):
     config = open(config_path, "r").read()
     settings = json.loads(config)
@@ -79,7 +83,7 @@ if len(sys.argv) == 1:
         elif options == "Quit":
             sys.exit()
         elif options == "Credits →":
-            print("EZLang Credits:")
+            print("OpenEZ Credits:")
             time.sleep(0.5)
             print("Lead Developer - COHEJH")
             time.sleep(0.5)
@@ -87,13 +91,14 @@ if len(sys.argv) == 1:
             time.sleep(0.5)
             print("Official Finder Of Problems - AverageNoB")
         elif options == "Full Install →":
-            print("Installing EZLang...")
+            t1 = datetime.datetime.now()
+            print("Installing OpenEZ...", end="\r")
             try:
-                os.mkdir(config_path.removesuffix("ez_config.json"))
+                os.mkdir(config_path.removesuffix("oez_config.json"))
             except:
                 pass
             open(config_path, "w").write(json.dumps(settings))
-            print("Installed EZLang.")
+            print(f"Installed OpenEZ in {datetime.datetime.now() - t1}")
         elif options == "Config →":
             config_menu()
     
@@ -111,23 +116,40 @@ if len(sys.argv) == 1:
             if options == "Official (Cohejh/EZLang)":
                 settings["github"] = github
                 open(config_path, "w").write(json.dumps(settings))
+                config_menu()
             elif options == "Custom Repo":
                 gh_path = input("Enter the Repository in the format <GitHub Username>/<Repository Name>: ")
                 settings["github"] = f"https://github.com/{gh_path}"
                 open(config_path, "w").write(json.dumps(settings))
+                config_menu()
             else:
                 u_c = 0
                 config_menu()
         elif options == "Output Settings →":
-            options,index = pick(["Official (Cohejh/EZLang)", "Custom Repo","Back ↺"],f"Choose your backend Repo (Currently: {settings['github'].removeprefix('https://github.com/')})", "➾")
+            options,index = pick(["Yes", "No","Back ↺"],f"Should the output be provided as a ZIP Archive? (Currently: {settings['zip']})", "➾")
             u_c = 1
-            if options == "Official (Cohejh/EZLang)":
+            if options == "Yes":
                 settings["zip"] = True
                 open(config_path, "w").write(json.dumps(settings))
-            elif options == "Custom Repo":
-                gh_path = input("Enter the Repository in the format <GitHub Username>/<Repository Name>: ")
-                settings["zip"] = f"https://github.com/{gh_path}"
+                config_menu()
+            elif options == "No":
+                settings["zip"] = False
                 open(config_path, "w").write(json.dumps(settings))
+                config_menu()
+            else:
+                u_c = 0
+                config_menu()
+        else:
+            options,index = pick(["Yes (Recommended)", "No","Back ↺"],f"Check for software updates? (Currently: {settings['check-update']})", "➾")
+            u_c = 1
+            if options == "Yes (Recommended)":
+                settings["check-update"] = True
+                open(config_path, "w").write(json.dumps(settings))
+                config_menu()
+            elif options == "No":
+                settings["check-update"] = False
+                open(config_path, "w").write(json.dumps(settings))
+                config_menu()
             else:
                 u_c = 0
                 config_menu()
@@ -398,13 +420,17 @@ def compile_file(f:str,z:bool):
         os.chdir(f"EZ_Compiled_{f.split('.')[0].capitalize()}")
     output = open(f"{f.split('.')[0].lower()}.py", "a")
     with alive_bar(len(code), unit=" lines") as bar:
+        output.write(f"# Built with EZLang ({settings['github'].removeprefix('https://')}) \n")
         for line in code:
             output.write(convert_line(line,indent_len) + "\n")
             bar()
     output.close()
     if z == True:
+        with open("LICENCE", "w") as l:
+            l.write(mit_l)
+            l.close()
         os.chdir("..")
-        shutil.make_archive(f"EZ_Compiled_{f.split('.')[0].capitalize()}", "zip")
+        shutil.make_archive(f"EZ_Compiled_{f.split('.')[0].capitalize()}", "zip", f"EZ_Compiled_{f.split('.')[0].capitalize()}")
         shutil.rmtree(f"EZ_Compiled_{f.split('.')[0].capitalize()}")
 
 if args.compile != None:
