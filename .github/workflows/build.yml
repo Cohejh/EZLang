@@ -86,7 +86,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: "v${{ env.VERSION }}"
-        name: "Release v${{ env.VERSION }}"
+        name: "OpenEZ Build v${{ env.VERSION }} for EZLang v${{ env.VERSION }}"
         files: |
           dist/*
       env:
