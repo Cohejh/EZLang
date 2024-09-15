@@ -46,7 +46,7 @@ def data_conversion(n:int) -> tuple[int, str]:
 
 main_menu = ["Licence →", "Credits →", "Quit"]
 
-# Check for a oez_config.json file.
+# Check for a oez_config.json file
 if os.path.exists(config_path):
     config = open(config_path, "r").read()
     settings = json.loads(config)
