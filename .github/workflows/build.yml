@@ -38,7 +38,7 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION=$(jq -r '.version' OpenEZ/build-config.json)
+        VERSION=$(jq -r '.version' build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: bash
 
@@ -101,13 +101,9 @@ jobs:
     - name: Upload build artifacts to release
       if: success() && github.event_name == 'push'
       run: |
-        if ($env:RUNNER_OS -eq "Windows") {
-          $files = Get-ChildItem -Path dist -File
-          foreach ($file in $files) {
-            Write-Host "Uploading $($file.FullName)"
-            gh release upload "v${{ env.VERSION }}" $file.FullName --clobber
-          }
-        } else {
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          pwsh -Command "Get-ChildItem -Path dist -File | ForEach-Object { gh release upload 'v${{ env.VERSION }}' $_.FullName --clobber }"
+        else
           for file in dist/*; do
             if [ -f "$file" ]; then
               echo "Uploading $file"
@@ -116,8 +112,7 @@ jobs:
               echo "$file is not a file. Skipping."
             fi
           done
-        }
+        fi
       shell: bash
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
