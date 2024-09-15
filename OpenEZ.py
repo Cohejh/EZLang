@@ -16,7 +16,7 @@ import datetime
 import time
 import requests
 
-credits = "COHEJH and AverageNoB"
+credits = "COHEJH, AverageNoB and Banjomoomintoog"
 
 mit_l = f'''Copyright (c) {datetime.datetime.now().year} {credits}
 \nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
@@ -87,9 +87,9 @@ if len(sys.argv) == 1:
             time.sleep(0.5)
             print("Lead Developer - COHEJH")
             time.sleep(0.5)
-            print("Guy Who Has Yet To Push A Commit To The Repo - Banjomoomintog")
+            print("Secondary Developer - Banjomoomintog")
             time.sleep(0.5)
-            print("Official Finder Of Problems - AverageNoB")
+            print("Secondary Developer - AverageNoB")
         elif options == "Full Install →":
             t1 = datetime.datetime.now()
             print("Installing OpenEZ...", end="\r")
