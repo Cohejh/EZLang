@@ -34,7 +34,7 @@ version = "1.0.0"
 github = "https://github.com/Cohejh/EZLang"
 config_path = os.path.expanduser("~/Documents/EZLang/oez_config.json")
 
-# Useful little function
+# Useful little function.
 def data_conversion(n:int) -> tuple[int, str]:
     i = 0
     k = n
@@ -46,7 +46,7 @@ def data_conversion(n:int) -> tuple[int, str]:
 
 main_menu = ["Licence →", "Credits →", "Quit"]
 
-# Check for a oez_config.json file
+# Check for a oez_config.json file.
 if os.path.exists(config_path):
     config = open(config_path, "r").read()
     settings = json.loads(config)
