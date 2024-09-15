@@ -38,7 +38,7 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION=$(jq -r '.version' build-config.json)
+        VERSION=$(jq -r '.version' OpenEZ/build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: bash
 
@@ -49,16 +49,17 @@ jobs:
 
     - name: Build executable
       run: |
+        cd OpenEZ
         if [ ${{ matrix.os }} == 'windows-latest' ]; then
-          pyinstaller --onefile --name OpenEZ.exe ./OpenEZ/OpenEZ.py
+          pyinstaller --onefile --name OpenEZ.exe OpenEZ.py
           mkdir -p dist/windows
           mv dist/OpenEZ.exe dist/windows/OpenEZ.exe
         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
-          pyinstaller --onefile ./OpenEZ/OpenEZ.py
+          pyinstaller --onefile OpenEZ.py
           mkdir -p dist/macos
           mv dist/OpenEZ dist/macos/OpenEZ
         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
-          pyinstaller --onefile ./OpenEZ/OpenEZ.py
+          pyinstaller --onefile OpenEZ.py
           mkdir -p dist/linux
           mv dist/OpenEZ dist/linux/OpenEZ
         else
@@ -101,13 +102,22 @@ jobs:
     - name: Upload build artifacts to release
       if: success() && github.event_name == 'push'
       run: |
-        for file in dist/*; do
-          if [ -f "$file" ]; then
-            echo "Uploading $file"
-            gh release upload "v${{ env.VERSION }}" $file --clobber
-          else
-            echo "$file is not a file. Skipping."
-          fi
-        done
+        if [ $RUNNER_OS == "Windows" ]; then
+          $files = Get-ChildItem -Path dist -File
+          foreach ($file in $files) {
+            Write-Host "Uploading $($file.FullName)"
+            gh release upload "v${{ env.VERSION }}" $file.FullName --clobber
+          }
+        else
+          for file in dist/*; do
+            if [ -f "$file" ]; then
+              echo "Uploading $file"
+              gh release upload "v${{ env.VERSION }}" $file --clobber
+            else
+              echo "$file is not a file. Skipping."
+            fi
+          done
+        fi
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
