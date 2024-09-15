@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'OpenEZ/**'
 
 jobs:
   build:
@@ -16,21 +18,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Python 3.10.6
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10.6'
+        python-version: '3.x'
+      id: python-setup
+
+    - name: Verify Python version
+      run: |
+        python --version
+      shell: bash
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r ./OpenEZ/requirements.txt
+      shell: bash
 
     - name: Extract version
       id: get_version
       run: |
         VERSION=$(jq -r '.version' build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
+      shell: bash
 
     - name: Debug matrix OS
       run: |
@@ -55,11 +65,12 @@ jobs:
           echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
+      shell: bash
 
     - name: Archive binaries
       run: |
         if [ ${{ matrix.os }} == 'windows-latest' ]; then
-          zip -r dist/OpenEZ-Windows.zip dist/windows
+          pwsh -Command "Compress-Archive -Path dist/windows/* -DestinationPath dist/OpenEZ-Windows.zip"
         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
           zip -r dist/OpenEZ-MacOS.zip dist/macos
         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
@@ -68,6 +79,7 @@ jobs:
           echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
+      shell: bash
 
     - name: Create Release
       id: release
@@ -90,8 +102,12 @@ jobs:
       if: success() && github.event_name == 'push'
       run: |
         for file in dist/*; do
-          echo "Uploading $file"
-          gh release upload "v${{ env.VERSION }}" $file
+          if [ -f "$file" ]; then
+            echo "Uploading $file"
+            gh release upload "v${{ env.VERSION }}" $file --clobber
+          else
+            echo "$file is not a file. Skipping."
+          fi
         done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
