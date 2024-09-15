@@ -1,4 +1,4 @@
-name: Build Launcher
+name: Compile Binaries
 on:
   push:
     branches: [ backend ]
