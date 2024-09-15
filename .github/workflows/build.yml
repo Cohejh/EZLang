@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -32,40 +32,40 @@ jobs:
         VERSION=$(jq -r '.version' build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-    - name: Debug runner OS
+    - name: Debug matrix OS
       run: |
-        echo "RUNNER_OS is $RUNNER_OS"
+        echo "Matrix OS is ${{ matrix.os }}"
       shell: bash
 
     - name: Build executable
       run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
+        if [ ${{ matrix.os }} == 'windows-latest' ]; then
           pyinstaller --onefile --name OpenEZ.exe ./OpenEZ/OpenEZ.py
           mkdir -p dist/windows
           mv dist/OpenEZ.exe dist/windows/OpenEZ.exe
-        elif [ "$RUNNER_OS" == "macOS" ]; then
+        elif [ ${{ matrix.os }} == 'macos-latest' ]; then
           pyinstaller --onefile ./OpenEZ/OpenEZ.py
           mkdir -p dist/macos
           mv dist/OpenEZ dist/macos/OpenEZ
-        elif [ "$RUNNER_OS" == "Linux" ]; then
+        elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
           pyinstaller --onefile ./OpenEZ/OpenEZ.py
           mkdir -p dist/linux
           mv dist/OpenEZ dist/linux/OpenEZ
         else
-          echo "Unknown OS: $RUNNER_OS"
+          echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
 
     - name: Archive binaries
       run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
+        if [ ${{ matrix.os }} == 'windows-latest' ]; then
           zip -r dist/OpenEZ-Windows.zip dist/windows
-        elif [ "$RUNNER_OS" == "macOS" ]; then
+        elif [ ${{ matrix.os }} == 'macos-latest' ]; then
           zip -r dist/OpenEZ-MacOS.zip dist/macos
-        elif [ "$RUNNER_OS" == "Linux" ]; then
+        elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
           tar -czvf dist/OpenEZ-Linux.tar.gz -C dist/linux OpenEZ
         else
-          echo "Unknown OS: $RUNNER_OS"
+          echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
 
