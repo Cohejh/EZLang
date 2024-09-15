@@ -38,7 +38,7 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION=$(jq -r '.version' OpenEZ/build-config.json)
+        VERSION=$(jq -r '.version' build-config.json)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
       shell: bash
 
@@ -49,30 +49,28 @@ jobs:
 
     - name: Build executable
       run: |
-        cd OpenEZ
         if [ ${{ matrix.os }} == 'windows-latest' ]; then
-          pyinstaller --onefile --name OpenEZ.exe --hidden-import=requests OpenEZ.py
+          pyinstaller --onefile --name OpenEZ.exe --hidden-import=requests ./OpenEZ/OpenEZ.py
           mkdir -p dist/windows
           mv dist/OpenEZ.exe dist/windows/OpenEZ.exe
         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
-          pyinstaller --onefile --hidden-import=requests OpenEZ.py
+          pyinstaller --onefile --hidden-import=requests ./OpenEZ/OpenEZ.py
           mkdir -p dist/macos
           mv dist/OpenEZ dist/macos/OpenEZ
         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
-          pyinstaller --onefile --hidden-import=requests OpenEZ.py
+          pyinstaller --onefile --hidden-import=requests ./OpenEZ/OpenEZ.py
           mkdir -p dist/linux
           mv dist/OpenEZ dist/linux/OpenEZ
         else
           echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
-        cd ..
       shell: bash
 
     - name: Archive binaries
       run: |
         if [ ${{ matrix.os }} == 'windows-latest' ]; then
-          bash -c "powershell -Command \"Compress-Archive -Path dist/windows/* -DestinationPath dist/OpenEZ-Windows.zip\""
+          pwsh -Command "Compress-Archive -Path dist/windows/* -DestinationPath dist/OpenEZ-Windows.zip"
         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
           zip -r dist/OpenEZ-macos.zip dist/macos
         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
@@ -103,14 +101,23 @@ jobs:
     - name: Upload build artifacts to release
       if: success() && github.event_name == 'push'
       run: |
-        for file in dist/*; do
-          if [ -f "$file" ]; then
-            echo "Uploading $file"
-            gh release upload "v${{ env.VERSION }}" $file --clobber
-          else
-            echo "$file is not a file. Skipping."
-          fi
-        done
+        if ($env:RUNNER_OS -eq "Windows") {
+          $files = Get-ChildItem -Path dist -File
+          foreach ($file in $files) {
+            Write-Host "Uploading $($file.FullName)"
+            gh release upload "v${{ env.VERSION }}" $file.FullName --clobber
+          }
+        } else {
+          for file in dist/*; do
+            if [ -f "$file" ]; then
+              echo "Uploading $file"
+              gh release upload "v${{ env.VERSION }}" $file --clobber
+            else
+              echo "$file is not a file. Skipping."
+            fi
+          done
+        }
       shell: bash
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
