@@ -1,7 +1,7 @@
 name: Compile Binaries
 on:
   push:
-    branches: [ main ]
+    branches: [ none ]
 
 jobs:
   create-release:
@@ -32,7 +32,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latets, ubuntu-latest, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
 
     steps:
       - name: Check out Git repository
