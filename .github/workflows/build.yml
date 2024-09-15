@@ -50,15 +50,15 @@ jobs:
     - name: Build executable
       run: |
         if [ ${{ matrix.os }} == 'windows-latest' ]; then
-          pyinstaller --onefile --name OpenEZ.exe --hidden-import=requests ./OpenEZ/OpenEZ.py
+          pyinstaller --onefile --name OpenEZ.exe --hidden-import=requests --collect-data grapheme ./OpenEZ/OpenEZ.py
           mkdir -p dist/windows
           mv dist/OpenEZ.exe dist/windows/OpenEZ.exe
         elif [ ${{ matrix.os }} == 'macos-latest' ]; then
-          pyinstaller --onefile --hidden-import=requests ./OpenEZ/OpenEZ.py
+          pyinstaller --onefile --hidden-import=requests --collect-data grapheme ./OpenEZ/OpenEZ.py
           mkdir -p dist/macos
           mv dist/OpenEZ dist/macos/OpenEZ
         elif [ ${{ matrix.os }} == 'ubuntu-latest' ]; then
-          pyinstaller --onefile --hidden-import=requests ./OpenEZ/OpenEZ.py
+          pyinstaller --onefile --hidden-import=requests --collect-data grapheme ./OpenEZ/OpenEZ.py
           mkdir -p dist/linux
           mv dist/OpenEZ dist/linux/OpenEZ
         else
