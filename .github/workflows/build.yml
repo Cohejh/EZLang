@@ -34,7 +34,11 @@ jobs:
 
     - name: Build executable
       run: |
-        pyinstaller --onefile ./OpenEZ/OpenEZ.py
+        if [ $RUNNER_OS == 'Windows' ]; then
+          pyinstaller --onefile --name OpenEZ.exe ./OpenEZ/OpenEZ.py  # Compile with the correct name for Windows
+        else
+          pyinstaller --onefile ./OpenEZ/OpenEZ.py  # Compile with default name for macOS/Linux
+        fi
 
     - name: Create Release
       id: release
