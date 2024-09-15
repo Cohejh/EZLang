@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "An open-source compiler for the EZLang Programming language.",
   "main": "OpenEZ/OpenEZ.py",
-  "author": "COHEJH <jcohenkadosh@gmail.com> (https://cohejh.com)",
+  "author": "COHEJH <jcohenkadosh@gmail.com> (https://cohejh.com/)",
   "contributors": [
     "AverageNoB",
     "Banjomoomintoog"

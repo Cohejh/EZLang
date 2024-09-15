@@ -66,6 +66,7 @@ jobs:
           echo "Unknown OS: ${{ matrix.os }}"
           exit 1
         fi
+        cd ..
       shell: bash
 
     - name: Archive binaries
