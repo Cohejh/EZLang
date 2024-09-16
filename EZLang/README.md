@@ -14,7 +14,12 @@ Hello
 Hello
 ```
 ## `say` Function - Added in v1.0.0
-This function takes in some text as input, and prints it to `stdout`. It may accept the result of a function as its input.
+This function takes in an input, and prints it to `stdout`. It has the following syntax:
+```
+say <INPUT>
+```
+### `<INPUT>` Parameter:
+This can be almost any object, such as a string, a variable or a list. If `"` or `'` are in the string, they must be preceded with a backslash, like so: `\"`, `\'`
 ### Example Usage:
 ```
 say "Hello World!
@@ -23,7 +28,12 @@ say "Hello World!
 Hello World!
 ```
 ## `ask` Function - Added in v1.0.0
-This function takes in user keyboard input after asking a prompt, until the enter key is pressed. **It does not save the output**. The prompt can be anything, as long as any quotation marks have a `\` preceding them, like so: `\"`
+This function takes in user keyboard input after asking a prompt, until the enter key is pressed. **It does not save the output**. It has the following syntax:
+```
+ask <PROMPT>
+```
+### `<PROMPT>` Parameter:
+The prompt can be any string, list or variable, as long as any quotation marks have a `\` preceding them, like so: `\"`
 ### Example Usage:
 ```
 ask "What is your name?"
@@ -90,4 +100,21 @@ This parameter can be any previously created file or a new file. It must be encl
 ```
 write "This is a new line" to "test.txt"
 ```
+## `insert` Function:
+This function inserts an element into a list at a particular index. Unlike most programming languages, the index starts from `1`, not `0`. It has the following syntax:
+```
+insert <OBJECT> into <LIST> in position <INDEX>
+```
+### `<OBJECT>` Parameter:
+This can be either a string, a variable, or a list.
+### `<LIST>` Parameter:
+This is any already-created list. The name must be in uppercase.
+### `<INDEX>` Parameter:
+This is the index, in which to insert the object into. This starts at `1` not `0`.
+### Example Usage:
+```
+insert "Strawberry" into FRUITS in position 2
+```
+## `remove` Function:
+
 
